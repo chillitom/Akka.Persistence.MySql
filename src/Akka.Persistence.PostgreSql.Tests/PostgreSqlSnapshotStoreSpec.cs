@@ -21,7 +21,7 @@ namespace Akka.Persistence.PostgreSql.Tests
                             class = ""Akka.Persistence.PostgreSql.Snapshot.PostgreSqlSnapshotStore, Akka.Persistence.PostgreSql""
                             plugin-dispatcher = ""akka.actor.default-dispatcher""
                             table-name = snapshot_store
-                            schema-name = public
+                            schema-name = akka_persistence_tests
                             auto-initialize = on
                             connection-string = """ + connectionString + @"""
                         }

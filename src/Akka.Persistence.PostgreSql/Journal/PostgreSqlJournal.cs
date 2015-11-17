@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Akka.Persistence.Journal;
-using Npgsql;
 using Akka.Persistence.Sql.Common.Journal;
 using Akka.Persistence.Sql.Common;
+using MySql.Data.MySqlClient;
 
 namespace Akka.Persistence.PostgreSql.Journal
 {
@@ -23,16 +20,16 @@ namespace Akka.Persistence.PostgreSql.Journal
 
         protected override DbConnection CreateDbConnection()
         {
-            return new NpgsqlConnection(Settings.ConnectionString);
+            return new MySqlConnection(Settings.ConnectionString);
         }
 
         protected override void CopyParamsToCommand(DbCommand sqlCommand, JournalEntry entry)
         {
-            sqlCommand.Parameters[":persistence_id"].Value = entry.PersistenceId;
-            sqlCommand.Parameters[":sequence_nr"].Value = entry.SequenceNr;
-            sqlCommand.Parameters[":is_deleted"].Value = entry.IsDeleted;
-            sqlCommand.Parameters[":payload_type"].Value = entry.PayloadType;
-            sqlCommand.Parameters[":payload"].Value = entry.Payload;
+            sqlCommand.Parameters["@persistence_id"].Value = entry.PersistenceId;
+            sqlCommand.Parameters["@sequence_nr"].Value = entry.SequenceNr;
+            sqlCommand.Parameters["@is_deleted"].Value = entry.IsDeleted;
+            sqlCommand.Parameters["@payload_type"].Value = entry.PayloadType;
+            sqlCommand.Parameters["@payload"].Value = entry.Payload;
         }
     }
 

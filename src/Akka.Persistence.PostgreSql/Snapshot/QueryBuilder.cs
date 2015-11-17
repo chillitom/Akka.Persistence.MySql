@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Data;
-using System.Data.SqlClient;
 using System.Text;
-using Npgsql;
-using NpgsqlTypes;
+
 using Akka.Persistence.Sql.Common.Snapshot;
 using System.Data.Common;
+using MySql.Data.MySqlClient;
 
 namespace Akka.Persistence.PostgreSql.Snapshot
 {
@@ -17,15 +15,15 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
         public PostgreSqlSnapshotQueryBuilder(string schemaName, string tableName)
         {
-            _deleteSql = @"DELETE FROM {0}.{1} WHERE persistence_id = :persistence_id ".QuoteSchemaAndTable(schemaName, tableName);
-            _insertSql = @"INSERT INTO {0}.{1} (persistence_id, sequence_nr, created_at, created_at_ticks, snapshot_type, snapshot) VALUES (:persistence_id, :sequence_nr, :created_at, :created_at_ticks, :snapshot_type, :snapshot)".QuoteSchemaAndTable(schemaName, tableName);
-            _selectSql = @"SELECT persistence_id, sequence_nr, created_at, created_at_ticks, snapshot_type, snapshot FROM {0}.{1} WHERE persistence_id = :persistence_id".QuoteSchemaAndTable(schemaName, tableName);
+            _deleteSql = @"DELETE FROM {0}.{1} WHERE persistence_id = @persistence_id ".QuoteSchemaAndTable(schemaName, tableName);
+            _insertSql = @"INSERT INTO {0}.{1} (persistence_id, sequence_nr, created_at, created_at_ticks, snapshot_type, snapshot) VALUES (@persistence_id, @sequence_nr, @created_at, @created_at_ticks, @snapshot_type, @snapshot)".QuoteSchemaAndTable(schemaName, tableName);
+            _selectSql = @"SELECT persistence_id, sequence_nr, created_at, created_at_ticks, snapshot_type, snapshot FROM {0}.{1} WHERE persistence_id = @persistence_id".QuoteSchemaAndTable(schemaName, tableName);
         }
 
         public DbCommand DeleteOne(string persistenceId, long sequenceNr, DateTime timestamp)
         {
-            var sqlCommand = new NpgsqlCommand();
-            sqlCommand.Parameters.Add(new NpgsqlParameter(":persistence_id", NpgsqlDbType.Varchar, persistenceId.Length)
+            var sqlCommand = new MySqlCommand();
+            sqlCommand.Parameters.Add(new MySqlParameter("@persistence_id", MySqlDbType.VarChar, persistenceId.Length)
             {
                 Value = persistenceId
             });
@@ -33,18 +31,18 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
             if (sequenceNr < long.MaxValue && sequenceNr > 0)
             {
-                sb.Append(@"AND sequence_nr = :sequence_nr ");
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":sequence_nr", NpgsqlDbType.Bigint) {Value = sequenceNr});
+                sb.Append(@"AND sequence_nr = @sequence_nr ");
+                sqlCommand.Parameters.Add(new MySqlParameter("@sequence_nr", MySqlDbType.Int64) {Value = sequenceNr});
             }
 
             if (timestamp > DateTime.MinValue && timestamp < DateTime.MaxValue)
             {
-                sb.Append(@"AND created_at = :created_at AND created_at_ticks = :created_at_ticks");
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":created_at", NpgsqlDbType.Timestamp)
+                sb.Append(@"AND created_at = @created_at AND created_at_ticks = @created_at_ticks");
+                sqlCommand.Parameters.Add(new MySqlParameter("@created_at", MySqlDbType.Timestamp)
                 {
                     Value = GetMaxPrecisionTicks(timestamp)
                 });
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":created_at_ticks", NpgsqlDbType.Smallint)
+                sqlCommand.Parameters.Add(new MySqlParameter("@created_at_ticks", MySqlDbType.Int32)
                 {
                     Value = GetExtraTicks(timestamp)
                 });
@@ -57,8 +55,8 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
         public DbCommand DeleteMany(string persistenceId, long maxSequenceNr, DateTime maxTimestamp)
         {
-            var sqlCommand = new NpgsqlCommand();
-            sqlCommand.Parameters.Add(new NpgsqlParameter(":persistence_id", NpgsqlDbType.Varchar, persistenceId.Length)
+            var sqlCommand = new MySqlCommand();
+            sqlCommand.Parameters.Add(new MySqlParameter("@persistence_id", MySqlDbType.VarChar, persistenceId.Length)
             {
                 Value = persistenceId
             });
@@ -66,8 +64,8 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
             if (maxSequenceNr < long.MaxValue && maxSequenceNr > 0)
             {
-                sb.Append(@" AND sequence_nr <= :sequence_nr ");
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":sequence_nr", NpgsqlDbType.Bigint)
+                sb.Append(@" AND sequence_nr <= @sequence_nr ");
+                sqlCommand.Parameters.Add(new MySqlParameter("@sequence_nr", MySqlDbType.Int64)
                 {
                     Value = maxSequenceNr
                 });
@@ -76,12 +74,12 @@ namespace Akka.Persistence.PostgreSql.Snapshot
             if (maxTimestamp > DateTime.MinValue && maxTimestamp < DateTime.MaxValue)
             {
                 sb.Append(
-                    @" AND (created_at < :created_at OR (created_at = :created_at AND created_at_ticks <= :created_at_ticks)) ");
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":created_at", NpgsqlDbType.Timestamp)
+                    @" AND (created_at < @created_at OR (created_at = @created_at AND created_at_ticks <= @created_at_ticks)) ");
+                sqlCommand.Parameters.Add(new MySqlParameter("@created_at", MySqlDbType.Timestamp)
                 {
                     Value = GetMaxPrecisionTicks(maxTimestamp)
                 });
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":created_at_ticks", NpgsqlDbType.Smallint)
+                sqlCommand.Parameters.Add(new MySqlParameter("@created_at_ticks", MySqlDbType.Int32)
                 {
                     Value = GetExtraTicks(maxTimestamp)
                 });
@@ -94,16 +92,16 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
         public DbCommand InsertSnapshot(SnapshotEntry entry)
         {
-            var sqlCommand = new NpgsqlCommand(_insertSql)
+            var sqlCommand = new MySqlCommand(_insertSql)
             {
                 Parameters =
                 {
-                    new NpgsqlParameter(":persistence_id", NpgsqlDbType.Varchar, entry.PersistenceId.Length) { Value = entry.PersistenceId },
-                    new NpgsqlParameter(":sequence_nr", NpgsqlDbType.Bigint) { Value = entry.SequenceNr },
-                    new NpgsqlParameter(":created_at", NpgsqlDbType.Timestamp) { Value = GetMaxPrecisionTicks(entry.Timestamp) },
-                    new NpgsqlParameter(":created_at_ticks", NpgsqlDbType.Smallint) { Value = GetExtraTicks(entry.Timestamp) },
-                    new NpgsqlParameter(":snapshot_type", NpgsqlDbType.Varchar, entry.SnapshotType.Length) { Value = entry.SnapshotType },
-                    new NpgsqlParameter(":snapshot", NpgsqlDbType.Bytea, entry.Snapshot.Length) { Value = entry.Snapshot }
+                    new MySqlParameter("@persistence_id", MySqlDbType.VarChar, entry.PersistenceId.Length) { Value = entry.PersistenceId },
+                    new MySqlParameter("@sequence_nr", MySqlDbType.Int64) { Value = entry.SequenceNr },
+                    new MySqlParameter("@created_at", MySqlDbType.Timestamp) { Value = GetMaxPrecisionTicks(entry.Timestamp) },
+                    new MySqlParameter("@created_at_ticks", MySqlDbType.Int32) { Value = GetExtraTicks(entry.Timestamp) },
+                    new MySqlParameter("@snapshot_type", MySqlDbType.VarChar, entry.SnapshotType.Length) { Value = entry.SnapshotType },
+                    new MySqlParameter("@snapshot", MySqlDbType.Blob, entry.Snapshot.Length) { Value = entry.Snapshot }
                 }
             };
 
@@ -112,8 +110,8 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
         public DbCommand SelectSnapshot(string persistenceId, long maxSequenceNr, DateTime maxTimestamp)
         {
-            var sqlCommand = new NpgsqlCommand();
-            sqlCommand.Parameters.Add(new NpgsqlParameter(":persistence_id", NpgsqlDbType.Varchar, persistenceId.Length)
+            var sqlCommand = new MySqlCommand();
+            sqlCommand.Parameters.Add(new MySqlParameter("@persistence_id", MySqlDbType.VarChar, persistenceId.Length)
             {
                 Value = persistenceId
             });
@@ -121,8 +119,8 @@ namespace Akka.Persistence.PostgreSql.Snapshot
             var sb = new StringBuilder(_selectSql);
             if (maxSequenceNr > 0 && maxSequenceNr < long.MaxValue)
             {
-                sb.Append(" AND sequence_nr <= :sequence_nr ");
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":sequence_nr", NpgsqlDbType.Bigint)
+                sb.Append(" AND sequence_nr <= @sequence_nr ");
+                sqlCommand.Parameters.Add(new MySqlParameter("@sequence_nr", MySqlDbType.Int64)
                 {
                     Value = maxSequenceNr
                 });
@@ -131,12 +129,12 @@ namespace Akka.Persistence.PostgreSql.Snapshot
             if (maxTimestamp > DateTime.MinValue && maxTimestamp < DateTime.MaxValue)
             {
                 sb.Append(
-                    @" AND (created_at < :created_at OR (created_at = :created_at AND created_at_ticks <= :created_at_ticks)) ");
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":created_at", NpgsqlDbType.Timestamp)
+                    @" AND (created_at < @created_at OR (created_at = @created_at AND created_at_ticks <= @created_at_ticks)) ");
+                sqlCommand.Parameters.Add(new MySqlParameter("@created_at", MySqlDbType.Timestamp)
                 {
                     Value = GetMaxPrecisionTicks(maxTimestamp)
                 });
-                sqlCommand.Parameters.Add(new NpgsqlParameter(":created_at_ticks", NpgsqlDbType.Smallint)
+                sqlCommand.Parameters.Add(new MySqlParameter("@created_at_ticks", MySqlDbType.Int32)
                 {
                     Value = GetExtraTicks(maxTimestamp)
                 });
@@ -149,18 +147,14 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
         private static DateTime GetMaxPrecisionTicks(DateTime date)
         {
-            var ticks = (date.Ticks / 10) * 10;
-
-            ticks = date.Ticks - ticks;
-
-            return date.AddTicks(-1 * ticks);
+            return new DateTime((date.Ticks / TimeSpan.TicksPerSecond) * TimeSpan.TicksPerSecond);
         }
 
-        private static short GetExtraTicks(DateTime date)
+        private static int GetExtraTicks(DateTime date)
         {
             var ticks = date.Ticks;
 
-            return (short)(ticks % 10);
+            return (int)(ticks % TimeSpan.TicksPerSecond);
         }
     }
 }

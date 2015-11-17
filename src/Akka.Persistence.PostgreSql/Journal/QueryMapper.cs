@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Data.Common;
-using System.Data.SqlClient;
-using Npgsql;
 using Akka.Persistence.Sql.Common.Journal;
 using Akka.Actor;
 

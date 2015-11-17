@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Configuration;
-using System.Data.SqlClient;
-using Akka.Dispatch.SysMsg;
-using Npgsql;
+using MySql.Data.MySqlClient;
 
 namespace Akka.Persistence.PostgreSql.Tests
 {
@@ -11,21 +9,21 @@ namespace Akka.Persistence.PostgreSql.Tests
         public static void Initialize()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["TestDb"].ConnectionString;
-            var connectionBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+            var connectionBuilder = new MySqlConnectionStringBuilder(connectionString);
 
             //connect to postgres database to create a new database
             var databaseName = connectionBuilder.Database;
-            connectionBuilder.Database = "postgres";
+            connectionBuilder.Database = "INFORMATION_SCHEMA";
             connectionString = connectionBuilder.ToString();
 
-            using (var conn = new NpgsqlConnection(connectionString))
+            using (var conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
 
                 bool dbExists;
-                using (var cmd = new NpgsqlCommand())
+                using (var cmd = new MySqlCommand())
                 {
-                    cmd.CommandText = string.Format(@"SELECT TRUE FROM pg_database WHERE datname='{0}'", databaseName);
+                    cmd.CommandText = string.Format(@"SELECT TRUE FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{0}'", databaseName);
                     cmd.Connection = conn;
 
                     var result = cmd.ExecuteScalar();
@@ -34,7 +32,7 @@ namespace Akka.Persistence.PostgreSql.Tests
 
                 if (dbExists)
                 {
-                    DoClean(conn);
+                    DoClean(conn, databaseName);
                 }
                 else
                 {
@@ -46,18 +44,19 @@ namespace Akka.Persistence.PostgreSql.Tests
         public static void Clean()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["TestDb"].ConnectionString;
+            var connectionBuilder = new MySqlConnectionStringBuilder(connectionString);
 
-            using (var conn = new NpgsqlConnection(connectionString))
+            using (var conn = new MySqlConnection(connectionString))
             {
                 conn.Open();
 
-                DoClean(conn);
+                DoClean(conn, connectionBuilder.Database);
             }
         }
 
-        private static void DoCreate(NpgsqlConnection conn, string databaseName)
+        private static void DoCreate(MySqlConnection conn, string databaseName)
         {
-            using (var cmd = new NpgsqlCommand())
+            using (var cmd = new MySqlCommand())
             {
                 cmd.CommandText = string.Format(@"CREATE DATABASE {0}", databaseName);
                 cmd.Connection = conn;
@@ -65,13 +64,13 @@ namespace Akka.Persistence.PostgreSql.Tests
             }
         }
 
-        private static void DoClean(NpgsqlConnection conn)
+        private static void DoClean(MySqlConnection conn, string databaseName)
         {
-            using (var cmd = new NpgsqlCommand())
+            using (var cmd = new MySqlCommand())
             {
-                cmd.CommandText = @"
-                    DROP TABLE IF EXISTS public.event_journal;
-                    DROP TABLE IF EXISTS public.snapshot_store";
+                cmd.CommandText = string.Format(@"
+                    DROP TABLE IF EXISTS {0}.event_journal;
+                    DROP TABLE IF EXISTS {0}.snapshot_store", databaseName);
                 cmd.Connection = conn;
                 cmd.ExecuteNonQuery();
             }

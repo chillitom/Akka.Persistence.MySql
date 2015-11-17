@@ -1,6 +1,4 @@
-﻿using System;
-using System.Data.SqlClient;
-using Npgsql;
+﻿using MySql.Data.MySqlClient;
 
 namespace Akka.Persistence.PostgreSql
 {
@@ -8,7 +6,7 @@ namespace Akka.Persistence.PostgreSql
     {
         public static string QuoteSchemaAndTable(this string sqlQuery, string schemaName, string tableName)
         {
-            var cb = new NpgsqlCommandBuilder();
+            var cb = new MySqlCommandBuilder();
             return string.Format(sqlQuery, cb.QuoteIdentifier(schemaName), cb.QuoteIdentifier(tableName));
         }
     }

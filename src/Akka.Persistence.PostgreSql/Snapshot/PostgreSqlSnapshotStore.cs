@@ -1,13 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Threading;
-using System.Threading.Tasks;
-using Akka.Persistence.Snapshot;
-using Npgsql;
-using Akka.Persistence.Sql.Common.Snapshot;
+﻿using Akka.Persistence.Sql.Common.Snapshot;
 using Akka.Persistence.Sql.Common;
-using System;
 using System.Data.Common;
+using MySql.Data.MySqlClient;
 
 namespace Akka.Persistence.PostgreSql.Snapshot
 {
@@ -38,7 +32,7 @@ namespace Akka.Persistence.PostgreSql.Snapshot
 
         protected override DbConnection CreateDbConnection()
         {
-            return new NpgsqlConnection(Settings.ConnectionString);
+            return new MySqlConnection(Settings.ConnectionString);
         }
     }
 }

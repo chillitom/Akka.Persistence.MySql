@@ -1,10 +1,7 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using System.Text;
-using Npgsql;
-using NpgsqlTypes;
+﻿using System.Text;
 using Akka.Persistence.Sql.Common.Journal;
 using System.Data.Common;
+using MySql.Data.MySqlClient;
 
 namespace Akka.Persistence.PostgreSql.Journal
 {
@@ -21,15 +18,15 @@ namespace Akka.Persistence.PostgreSql.Journal
             _tableName = tableName;
             _schemaName = schemaName;
 
-            _insertMessagesSql = "INSERT INTO {0}.{1} (persistence_id, sequence_nr, is_deleted, payload_type, payload) VALUES (:persistence_id, :sequence_nr, :is_deleted, :payload_type, :payload)"
+            _insertMessagesSql = "INSERT INTO {0}.{1} (persistence_id, sequence_nr, is_deleted, payload_type, payload) VALUES (@persistence_id, @sequence_nr, @is_deleted, @payload_type, @payload)"
                 .QuoteSchemaAndTable(_schemaName, _tableName);
-            _selectHighestSequenceNrSql = @"SELECT MAX(sequence_nr) FROM {0}.{1} WHERE persistence_id = :persistence_id".QuoteSchemaAndTable(_schemaName, _tableName);
+            _selectHighestSequenceNrSql = @"SELECT MAX(sequence_nr) FROM {0}.{1} WHERE persistence_id = @persistence_id".QuoteSchemaAndTable(_schemaName, _tableName);
         }
 
         public DbCommand SelectMessages(string persistenceId, long fromSequenceNr, long toSequenceNr, long max)
         {
             var sql = BuildSelectMessagesSql(fromSequenceNr, toSequenceNr, max);
-            var command = new NpgsqlCommand(sql)
+            var command = new MySqlCommand(sql)
             {
                 Parameters = { PersistenceIdToSqlParam(persistenceId) }
             };
@@ -39,7 +36,7 @@ namespace Akka.Persistence.PostgreSql.Journal
 
         public DbCommand SelectHighestSequenceNr(string persistenceId)
         {
-            var command = new NpgsqlCommand(_selectHighestSequenceNrSql)
+            var command = new MySqlCommand(_selectHighestSequenceNrSql)
             {
                 Parameters = { PersistenceIdToSqlParam(persistenceId) }
             };
@@ -49,12 +46,12 @@ namespace Akka.Persistence.PostgreSql.Journal
 
         public DbCommand InsertBatchMessages(IPersistentRepresentation[] messages)
         {
-            var command = new NpgsqlCommand(_insertMessagesSql);
-            command.Parameters.Add(":persistence_id", NpgsqlDbType.Varchar);
-            command.Parameters.Add(":sequence_nr", NpgsqlDbType.Bigint);
-            command.Parameters.Add(":is_deleted", NpgsqlDbType.Boolean);
-            command.Parameters.Add(":payload_type", NpgsqlDbType.Varchar);
-            command.Parameters.Add(":payload", NpgsqlDbType.Bytea);
+            var command = new MySqlCommand(_insertMessagesSql);
+            command.Parameters.Add("@persistence_id", MySqlDbType.VarChar);
+            command.Parameters.Add("@sequence_nr", MySqlDbType.Int64);
+            command.Parameters.Add("@is_deleted", MySqlDbType.Bit);
+            command.Parameters.Add("@payload_type", MySqlDbType.VarChar);
+            command.Parameters.Add("@payload", MySqlDbType.Blob);
 
             return command;
         }
@@ -62,7 +59,7 @@ namespace Akka.Persistence.PostgreSql.Journal
         public DbCommand DeleteBatchMessages(string persistenceId, long toSequenceNr, bool permanent)
         {
             var sql = BuildDeleteSql(toSequenceNr, permanent);
-            var command = new NpgsqlCommand(sql)
+            var command = new MySqlCommand(sql)
             {
                 Parameters = { PersistenceIdToSqlParam(persistenceId) }
             };
@@ -83,7 +80,7 @@ namespace Akka.Persistence.PostgreSql.Journal
                 sqlBuilder.Append("UPDATE {0}.{1} SET is_deleted = true ".QuoteSchemaAndTable(_schemaName, _tableName));
             }
 
-            sqlBuilder.Append("WHERE persistence_id = :persistence_id");
+            sqlBuilder.Append("WHERE persistence_id = @persistence_id");
 
             if (toSequenceNr != long.MaxValue)
             {
@@ -104,7 +101,7 @@ namespace Akka.Persistence.PostgreSql.Journal
                     is_deleted,
                     payload_type,
                     payload ")
-                .Append(" FROM {0}.{1} WHERE persistence_id = :persistence_id".QuoteSchemaAndTable(_schemaName, _tableName));
+                .Append(" FROM {0}.{1} WHERE persistence_id = @persistence_id".QuoteSchemaAndTable(_schemaName, _tableName));
 
             // since we guarantee type of fromSequenceNr, toSequenceNr and max
             // we can inline them without risk of SQL injection
@@ -132,9 +129,9 @@ namespace Akka.Persistence.PostgreSql.Journal
             return sql;
         }
 
-        private static NpgsqlParameter PersistenceIdToSqlParam(string persistenceId, string paramName = null)
+        private static MySqlParameter PersistenceIdToSqlParam(string persistenceId, string paramName = null)
         {
-            return new NpgsqlParameter(paramName ?? ":persistence_id", NpgsqlDbType.Varchar, persistenceId.Length) { Value = persistenceId };
+            return new MySqlParameter(paramName ?? "@persistence_id", MySqlDbType.VarChar, persistenceId.Length) { Value = persistenceId };
         }
     }
 }

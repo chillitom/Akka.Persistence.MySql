@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Data.Common;
-using System.Data.SqlClient;
-using Npgsql;
 using Akka.Persistence.Sql.Common.Snapshot;
 
 namespace Akka.Persistence.PostgreSql.Snapshot
@@ -21,7 +19,7 @@ namespace Akka.Persistence.PostgreSql.Snapshot
             var sequenceNr = reader.GetInt64(1);
 
             var timestamp = reader.GetDateTime(2);
-            var timestampTicks = reader.GetInt16(3);
+            var timestampTicks = reader.GetInt32(3);
             timestamp = timestamp.AddTicks(timestampTicks);
 
             var metadata = new SnapshotMetadata(persistenceId, sequenceNr, timestamp);
