@@ -5,15 +5,15 @@ using Akka.Persistence.Sql.Common.Snapshot;
 using System.Data.Common;
 using MySql.Data.MySqlClient;
 
-namespace Akka.Persistence.PostgreSql.Snapshot
+namespace Akka.Persistence.MySql.Snapshot
 {
-    internal class PostgreSqlSnapshotQueryBuilder : ISnapshotQueryBuilder
+    internal class MySqlSnapshotQueryBuilder : ISnapshotQueryBuilder
     {
         private readonly string _deleteSql;
         private readonly string _insertSql;
         private readonly string _selectSql;
 
-        public PostgreSqlSnapshotQueryBuilder(string schemaName, string tableName)
+        public MySqlSnapshotQueryBuilder(string schemaName, string tableName)
         {
             _deleteSql = @"DELETE FROM {0}.{1} WHERE persistence_id = @persistence_id ".QuoteSchemaAndTable(schemaName, tableName);
             _insertSql = @"INSERT INTO {0}.{1} (persistence_id, sequence_nr, created_at, created_at_ticks, snapshot_type, snapshot) VALUES (@persistence_id, @sequence_nr, @created_at, @created_at_ticks, @snapshot_type, @snapshot)".QuoteSchemaAndTable(schemaName, tableName);

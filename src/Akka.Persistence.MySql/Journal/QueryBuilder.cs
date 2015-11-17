@@ -3,9 +3,9 @@ using Akka.Persistence.Sql.Common.Journal;
 using System.Data.Common;
 using MySql.Data.MySqlClient;
 
-namespace Akka.Persistence.PostgreSql.Journal
+namespace Akka.Persistence.MySql.Journal
 {
-    internal class PostgreSqlJournalQueryBuilder : IJournalQueryBuilder
+    internal class MySqlJournalQueryBuilder : IJournalQueryBuilder
     {
         private readonly string _schemaName;
         private readonly string _tableName;
@@ -13,7 +13,7 @@ namespace Akka.Persistence.PostgreSql.Journal
         private readonly string _selectHighestSequenceNrSql;
         private readonly string _insertMessagesSql;
 
-        public PostgreSqlJournalQueryBuilder(string tableName, string schemaName)
+        public MySqlJournalQueryBuilder(string tableName, string schemaName)
         {
             _tableName = tableName;
             _schemaName = schemaName;

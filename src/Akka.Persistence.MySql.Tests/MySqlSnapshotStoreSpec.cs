@@ -1,26 +1,26 @@
 ﻿using System.Configuration;
 using Akka.Configuration;
-using Akka.Persistence.TestKit.Journal;
+using Akka.Persistence.TestKit.Snapshot;
 
-namespace Akka.Persistence.PostgreSql.Tests
+namespace Akka.Persistence.MySql.Tests
 {
-    public class PostgreSqlJournalSpec : JournalSpec
+    public class MySqlSnapshotStoreSpec : SnapshotStoreSpec
     {
         private static readonly Config SpecConfig;
 
-        static PostgreSqlJournalSpec()
+        static MySqlSnapshotStoreSpec()
         {
             var connectionString = ConfigurationManager.ConnectionStrings["TestDb"].ConnectionString;
 
             var config = @"
                 akka.persistence {
                     publish-plugin-commands = on
-                    journal {
-                        plugin = ""akka.persistence.journal.postgresql""
-                        postgresql {
-                            class = ""Akka.Persistence.PostgreSql.Journal.PostgreSqlJournal, Akka.Persistence.PostgreSql""
+                    snapshot-store {
+                        plugin = ""akka.persistence.snapshot-store.MySql""
+                        MySql {
+                            class = ""Akka.Persistence.MySql.Snapshot.MySqlSnapshotStore, Akka.Persistence.MySql""
                             plugin-dispatcher = ""akka.actor.default-dispatcher""
-                            table-name = event_journal
+                            table-name = snapshot_store
                             schema-name = akka_persistence_tests
                             auto-initialize = on
                             connection-string = """ + connectionString + @"""
@@ -34,8 +34,8 @@ namespace Akka.Persistence.PostgreSql.Tests
             DbUtils.Initialize();
         }
 
-        public PostgreSqlJournalSpec()
-            : base(SpecConfig, "PostgreSqlJournalSpec")
+        public MySqlSnapshotStoreSpec()
+            : base(SpecConfig, "MySqlSnapshotStoreSpec")
         {
             Initialize();
         }

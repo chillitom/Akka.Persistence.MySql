@@ -3,13 +3,13 @@ using System.Data.Common;
 using Akka.Persistence.Sql.Common.Journal;
 using Akka.Actor;
 
-namespace Akka.Persistence.PostgreSql.Journal
+namespace Akka.Persistence.MySql.Journal
 {
-    internal class PostgreSqlJournalQueryMapper : IJournalQueryMapper
+    internal class MySqlJournalQueryMapper : IJournalQueryMapper
     {
         private readonly Akka.Serialization.Serialization _serialization;
 
-        public PostgreSqlJournalQueryMapper(Akka.Serialization.Serialization serialization)
+        public MySqlJournalQueryMapper(Akka.Serialization.Serialization serialization)
         {
             _serialization = serialization;
         }

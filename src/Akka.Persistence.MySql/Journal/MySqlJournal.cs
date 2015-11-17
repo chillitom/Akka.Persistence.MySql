@@ -7,15 +7,15 @@ using Akka.Persistence.Sql.Common.Journal;
 using Akka.Persistence.Sql.Common;
 using MySql.Data.MySqlClient;
 
-namespace Akka.Persistence.PostgreSql.Journal
+namespace Akka.Persistence.MySql.Journal
 {
-    public class PostgreSqlJournalEngine : JournalDbEngine
+    public class MySqlJournalEngine : JournalDbEngine
     {
-        public PostgreSqlJournalEngine(JournalSettings journalSettings, Akka.Serialization.Serialization serialization)
+        public MySqlJournalEngine(JournalSettings journalSettings, Akka.Serialization.Serialization serialization)
             : base(journalSettings, serialization)
         {
-            QueryBuilder = new PostgreSqlJournalQueryBuilder(journalSettings.TableName, journalSettings.SchemaName);
-            QueryMapper = new PostgreSqlJournalQueryMapper(serialization);
+            QueryBuilder = new MySqlJournalQueryBuilder(journalSettings.TableName, journalSettings.SchemaName);
+            QueryMapper = new MySqlJournalQueryMapper(serialization);
         }
 
         protected override DbConnection CreateDbConnection()
@@ -34,17 +34,17 @@ namespace Akka.Persistence.PostgreSql.Journal
     }
 
     /// <summary>
-    /// Persistent journal actor using PostgreSQL as persistence layer. It processes write requests
+    /// Persistent journal actor using MySql as persistence layer. It processes write requests
     /// one by one in synchronous manner, while reading results asynchronously.
     /// </summary>
-    public class PostgreSqlJournal : SyncWriteJournal
+    public class MySqlJournal : SyncWriteJournal
     {
-        private readonly PostgreSqlPersistenceExtension _extension;
-        private PostgreSqlJournalEngine _engine;
+        private readonly MySqlPersistenceExtension _extension;
+        private MySqlJournalEngine _engine;
 
-        public PostgreSqlJournal()
+        public MySqlJournal()
         {
-            _extension = PostgreSqlPersistence.Instance.Apply(Context.System);
+            _extension = MySqlPersistence.Instance.Apply(Context.System);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Akka.Persistence.PostgreSql.Journal
         {
             get
             {
-                return _engine ?? (_engine = new PostgreSqlJournalEngine(_extension.JournalSettings, Context.System.Serialization));
+                return _engine ?? (_engine = new MySqlJournalEngine(_extension.JournalSettings, Context.System.Serialization));
             }
         }
 

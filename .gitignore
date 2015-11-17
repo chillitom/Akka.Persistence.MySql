@@ -214,3 +214,4 @@ resetdev.bat
 
 # FAKE build folder
 .fake/
+*.ncrunchsolution

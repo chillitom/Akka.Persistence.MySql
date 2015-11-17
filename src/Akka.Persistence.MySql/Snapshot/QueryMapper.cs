@@ -2,13 +2,13 @@
 using System.Data.Common;
 using Akka.Persistence.Sql.Common.Snapshot;
 
-namespace Akka.Persistence.PostgreSql.Snapshot
+namespace Akka.Persistence.MySql.Snapshot
 {
-    internal class PostgreSqlSnapshotQueryMapper : ISnapshotQueryMapper
+    internal class MySqlSnapshotQueryMapper : ISnapshotQueryMapper
     {
         private readonly Akka.Serialization.Serialization _serialization;
 
-        public PostgreSqlSnapshotQueryMapper(Akka.Serialization.Serialization serialization)
+        public MySqlSnapshotQueryMapper(Akka.Serialization.Serialization serialization)
         {
             _serialization = serialization;
         }

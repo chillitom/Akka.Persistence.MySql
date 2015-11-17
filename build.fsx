@@ -52,7 +52,7 @@ let nugetDir = binDir @@ "nuget"
 let workingDir = binDir @@ "build"
 let libDir = workingDir @@ @"lib\net45\"
 let nugetExe = FullName @"src\.nuget\NuGet.exe"
-let slnFile = "./src/Akka.Persistence.PostgreSql.sln"
+let slnFile = "./src/Akka.Persistence.MySql.sln"
 
 open Fake.RestorePackageHelper
 Target "RestorePackages" (fun _ -> 
@@ -103,7 +103,7 @@ Target "CopyOutput" <| fun _ ->
         let src = "src" @@ project @@ @"bin/Release/"
         let dst = binDir @@ project
         CopyDir dst src allFiles
-    [ "Akka.Persistence.PostgreSql"
+    [ "Akka.Persistence.MySql"
       ]
     |> List.iter copyOutput
 
@@ -168,8 +168,8 @@ let updateNugetPackages _ =
 
   let getPackages project =
     match project with
-    | "Akka.Persistence.PostgreSql" -> ["Akka.Persistence";"Akka.Persistence.Sql.Common"]
-    | "Akka.Persistence.PostgreSql.Tests" -> ["Akka.Persistence.TestKit";"Akka.Persistence.Sql.Common";]
+    | "Akka.Persistence.MySql" -> ["Akka.Persistence";"Akka.Persistence.Sql.Common"]
+    | "Akka.Persistence.MySql.Tests" -> ["Akka.Persistence.TestKit";"Akka.Persistence.Sql.Common";]
     | _ -> []
 
   for projectFile in !! "src/**/*.csproj" do

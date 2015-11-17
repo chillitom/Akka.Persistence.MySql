@@ -2,7 +2,7 @@
 using System.Configuration;
 using MySql.Data.MySqlClient;
 
-namespace Akka.Persistence.PostgreSql.Tests
+namespace Akka.Persistence.MySql.Tests
 {
     public static class DbUtils
     {
@@ -11,7 +11,7 @@ namespace Akka.Persistence.PostgreSql.Tests
             var connectionString = ConfigurationManager.ConnectionStrings["TestDb"].ConnectionString;
             var connectionBuilder = new MySqlConnectionStringBuilder(connectionString);
 
-            //connect to postgres database to create a new database
+            //connect to mysql database to create a new database
             var databaseName = connectionBuilder.Database;
             connectionBuilder.Database = "INFORMATION_SCHEMA";
             connectionString = connectionBuilder.ToString();

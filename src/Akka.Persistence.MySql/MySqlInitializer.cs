@@ -1,9 +1,9 @@
 ﻿using System;
 using MySql.Data.MySqlClient;
 
-namespace Akka.Persistence.PostgreSql
+namespace Akka.Persistence.MySql
 {
-    internal static class PostgreSqlInitializer
+    internal static class MySqlInitializer
     {
         private const string SqlJournalFormat = @"
             CREATE TABLE IF NOT EXISTS {0}.{1} (
@@ -32,20 +32,20 @@ namespace Akka.Persistence.PostgreSql
             ";
 
         /// <summary>
-        /// Initializes a PostgreSQL journal-related tables according to 'schema-name', 'table-name' 
-        /// and 'connection-string' values provided in 'akka.persistence.journal.postgresql' config.
+        /// Initializes a MySql journal-related tables according to 'schema-name', 'table-name' 
+        /// and 'connection-string' values provided in 'akka.persistence.journal.MySql' config.
         /// </summary>
-        internal static void CreatePostgreSqlJournalTables(string connectionString, string schemaName, string tableName)
+        internal static void CreateMySqlJournalTables(string connectionString, string schemaName, string tableName)
         {
             var sql = InitJournalSql(tableName, schemaName);
             ExecuteSql(connectionString, sql);
         }
 
         /// <summary>
-        /// Initializes a PostgreSQL snapshot store related tables according to 'schema-name', 'table-name' 
-        /// and 'connection-string' values provided in 'akka.persistence.snapshot-store.postgresql' config.
+        /// Initializes a MySql snapshot store related tables according to 'schema-name', 'table-name' 
+        /// and 'connection-string' values provided in 'akka.persistence.snapshot-store.MySql' config.
         /// </summary>
-        internal static void CreatePostgreSqlSnapshotStoreTables(string connectionString, string schemaName, string tableName)
+        internal static void CreateMySqlSnapshotStoreTables(string connectionString, string schemaName, string tableName)
         {
             var sql = InitSnapshotStoreSql(tableName, schemaName);
             ExecuteSql(connectionString, sql);
@@ -53,14 +53,14 @@ namespace Akka.Persistence.PostgreSql
 
         private static string InitJournalSql(string tableName, string schemaName)
         {
-            if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName", "Akka.Persistence.PostgreSql journal table name is required");
+            if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName", "Akka.Persistence.MySql journal table name is required");
 
             return SqlJournalFormat.QuoteSchemaAndTable(schemaName, tableName);
         }
 
         private static string InitSnapshotStoreSql(string tableName, string schemaName)
         {
-            if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName", "Akka.Persistence.PostgreSql snapshot store table name is required");
+            if (string.IsNullOrEmpty(tableName)) throw new ArgumentNullException("tableName", "Akka.Persistence.MySql snapshot store table name is required");
 
             return SqlSnapshotStoreFormat.QuoteSchemaAndTable(schemaName, tableName);
         }

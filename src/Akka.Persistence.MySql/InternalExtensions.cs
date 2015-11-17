@@ -1,6 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 
-namespace Akka.Persistence.PostgreSql
+namespace Akka.Persistence.MySql
 {
     internal static class InternalExtensions
     {
