@@ -81,6 +81,6 @@ The MySql tests are packaged and run as part of the default "All" build task.
 
 In order to run the tests, you must do the following things:
 
-1. Download and install MySql from: http://www.mysql.org/download/
+1. Download and install MySql from: http://dev.mysql.com/downloads/
 2. Install MySql with the default settings.
 3. A custom app.config file can be used and needs to be placed in the same folder as the dll
